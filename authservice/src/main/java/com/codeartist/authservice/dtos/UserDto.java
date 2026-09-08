@@ -11,15 +11,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDto {
-    private String userName;
+    @NonNull
+    private String username;
+    @NonNull
     private String userEmailId;
+
     private String userEmailPassword;
     private Integer userId;
     public  UserDto getUserDtoFromEntity(User user){
 
         this.userEmailId = user.getEmailId();
         this.userEmailPassword = user.getPassword();
-        this.userName = user.getUsername();
+        this.username = user.getUsername();
         this.userId = user.getUserId();
         return this;
     }

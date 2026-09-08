@@ -24,17 +24,21 @@ public class JWTUtilService {
 
     SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
     public String generateToken(UserDto userDto){
-        return generateClaims(userDto);
+        return generateClaims(userDto,30);
     }
 
-    private String generateClaims(UserDto claim){
+    public String generateRefreshToken(UserDto userDto){
+        return generateClaims(userDto,60*24*7);
+    }
+
+    private String generateClaims(UserDto claim,int expirationTime){
 
         Map<String, String> map = new HashMap<>();
-        map.put("userName",claim.getUserName());
+        map.put("userName",claim.getUsername());
 
      return   Jwts.builder().claims(map).signWith(key)
                  .issuedAt(Date.from(Instant.now()))
-                 .expiration(Date.from(Instant.now().plus(60, ChronoUnit.MINUTES)))
+                 .expiration(Date.from(Instant.now().plus(expirationTime, ChronoUnit.MINUTES)))
                  .subject(  claim.getUserEmailId() )
                  .compact();
     }
@@ -48,7 +52,7 @@ public class JWTUtilService {
     public Boolean isTokenValid(String token,UserDto userDto){
         String userName = getUsername(token);
         return !isTokenExpired(token)
-                && (userName.equalsIgnoreCase(userDto.getUserName()));
+                && (userName.equalsIgnoreCase(userDto.getUsername()));
     }
 
 

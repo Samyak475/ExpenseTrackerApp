@@ -17,9 +17,8 @@ import java.time.LocalDateTime;
 public class Tokens {
     @Id
     private String tokenId;
-    @OneToOne
-    private User user;
-    @UpdateTimestamp
+
+
     private LocalDateTime expirationTime;
     @CreationTimestamp
     private LocalDateTime createdAtTime;

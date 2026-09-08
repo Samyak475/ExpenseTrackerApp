@@ -14,26 +14,36 @@ import java.util.Collections;
 import java.util.List;
 
 @Entity
-@Table(name = "User")
+//@Table(name = "User"
+//, uniqueConstraints = {@UniqueConstraint(name = "uk_user",columnNames = {"username","emailId"})}
+//)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer userId;
+    @NonNull
+    @Column(unique = true)
     private String username;
+    @NonNull
+    @Column(unique = true)
     private String emailId;
     private String password;
-    private Collection<GrantedAuthority> authority = List.of( new SimpleGrantedAuthority("User"));
-    @OneToOne
+//    private Collection<GrantedAuthority> authority ;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(
+            name = "token_id" , referencedColumnName = "tokenId"
+    )
     private Tokens tokens;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.authority;
+        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override
