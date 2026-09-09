@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface UserRepo extends JpaRepository<User, Long> {
     public Optional<User>getUserByUsername(String username);
     public Optional<User>getUserByTokens(Tokens  tokens);
+    public Optional<User> getUserByTokens_TokenId(String tokenId);
+
 }

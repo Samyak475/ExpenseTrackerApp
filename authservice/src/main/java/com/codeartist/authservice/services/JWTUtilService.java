@@ -1,22 +1,17 @@
 package com.codeartist.authservice.services;
 
 import com.codeartist.authservice.dtos.UserDto;
-import com.codeartist.authservice.entities.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Service;
-
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.util.Date;
-import java.sql.*;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class JWTUtilService {
@@ -27,8 +22,9 @@ public class JWTUtilService {
         return generateClaims(userDto,30);
     }
 
-    public String generateRefreshToken(UserDto userDto){
-        return generateClaims(userDto,60*24*7);
+    public String generateRefreshToken(){
+        return UUID.randomUUID().toString();
+
     }
 
     private String generateClaims(UserDto claim,int expirationTime){
@@ -39,7 +35,7 @@ public class JWTUtilService {
      return   Jwts.builder().claims(map).signWith(key)
                  .issuedAt(Date.from(Instant.now()))
                  .expiration(Date.from(Instant.now().plus(expirationTime, ChronoUnit.MINUTES)))
-                 .subject(  claim.getUserEmailId() )
+                 .subject(  claim.getEmailId() )
                  .compact();
     }
 

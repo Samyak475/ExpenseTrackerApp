@@ -6,15 +6,25 @@ import com.codeartist.authservice.dtos.SignUpResponseDto;
 import com.codeartist.authservice.dtos.UserDto;
 import com.codeartist.authservice.entities.Tokens;
 import com.codeartist.authservice.entities.User;
+import com.codeartist.authservice.exceptions.UserAlreadyExistException;
 import com.codeartist.authservice.repositories.TokenRepo;
 import com.codeartist.authservice.repositories.UserRepo;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.sql.SQLException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -34,20 +44,26 @@ public class AuthService {
 
     @Transactional
     public SignUpResponseDto signUpRequest(UserDto userDto){
-        userDto.setUserEmailPassword(passwordEncoder.encode(userDto.getUserEmailPassword()));
+        userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
         User newUser = getUserFromUserDto(userDto);
         System.out.println("here for signup");
         String accessToken = jwtUtilService.generateToken(userDto);
-        String refreshToken = jwtUtilService.generateRefreshToken(userDto);
-        Tokens refreshTokenInDb = Tokens.builder().tokenId(refreshToken).build();
+        String refreshToken = jwtUtilService.generateRefreshToken();
+        LocalDateTime expirationTime = LocalDateTime.now().plusMonths(1);
+        Tokens refreshTokenInDb = Tokens.builder().tokenId(refreshToken).expirationTime(expirationTime).build();
         try{
 //            saveTokenInDb(refreshTokenInDb);
 //            tokenRepo.save(refreshTokenInDb);
             newUser.setTokens(refreshTokenInDb);
 //            saveOrUpdateUserInDB(newUser);
-            userRepo.save(newUser);
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to save token in DB"+e);
+            userRepo.saveAndFlush(newUser); // here we have used flush because spring jpa save the insert in jpa persistence
+            // and only send all inserts if try block is success. But since SQL is not run, so catch block is missed due to which
+            // userAlreadyExistException is not thrown. Part of using Transactional keyword.
+        } catch ( DataIntegrityViolationException e) {
+            throw new UserAlreadyExistException("Duplicate record found"+e.getMessage());
+        }
+        catch (Exception dt){
+            throw new RuntimeException("Unable to access userData"+dt.getLocalizedMessage());
         }
         return SignUpResponseDto.builder().accessToken(accessToken).refreshToken(refreshToken).build();
 
@@ -64,33 +80,63 @@ public class AuthService {
 
         User existingUser = (User) authentication.getPrincipal();
         UserDto userDto =  new UserDto().getUserDtoFromEntity(existingUser);
-        userDto.setUserEmailPassword(requestDto.getPassword());
+        userDto.setPassword(requestDto.getPassword());
         String accessToken = jwtUtilService.generateToken(userDto);
-        String refreshToken = jwtUtilService.generateToken(userDto);
-        Tokens refreshTokenInDb = Tokens.builder().tokenId(refreshToken).build();
+        String refreshToken = jwtUtilService.generateRefreshToken();
+        LocalDateTime expirationTime = LocalDateTime.now().plusMonths(1);
+        Tokens refreshTokenInDb = Tokens.builder().tokenId(refreshToken).expirationTime(expirationTime).build();
         try{
 //            saveTokenInDb(refreshTokenInDb);
            // tokenRepo.save(refreshTokenInDb);
             existingUser.setTokens(refreshTokenInDb);
 //            saveOrUpdateUserInDB(existingUser);
-            userRepo.save(existingUser);
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to save token in DB");
+            userRepo.saveAndFlush(existingUser);
+        } catch ( DataIntegrityViolationException e) {
+            throw new UserAlreadyExistException("Duplicate record found"+e.getMessage());
+        }
+        catch (Exception dt){
+            throw new RuntimeException("Unable to access userData"+dt.getLocalizedMessage());
         }
 
         return LoginResponseDto.builder()
                 .accessToken(accessToken)
-                .email(userDto.getUserEmailId())
+                .email(userDto.getEmailId())
                 .loginStatus("User Logged In Successfully")
                 .username(userDto.getUsername())
                 .refreshToken(refreshToken)
                 .build();
     }
 
+
+    public String generateAccessToken(String refreshToken){
+        Tokens tokens = Tokens.builder().tokenId(refreshToken).build();
+        // this token will get full user object as JPA/Hibernate run the query on foriegn key which is TokenId and ignores rest of the fiedl
+        // another way not create a full token object and still get existing user is below
+Optional<User> existingUser = userRepo.getUserByTokens_TokenId(refreshToken);
+//     Optional<User>existingUser = userRepo.getUserByTokens(tokens);
+//     Tokens tokens = tokenRepo.getTokensByTokenId(refreshToken);
+     if(existingUser.isEmpty()){
+         throw new UsernameNotFoundException("Invalid Refresh Token");
+     }
+
+     if(LocalDateTime.now().isAfter(existingUser.get().getTokens().getExpirationTime())){
+         throw new RuntimeException("Refresh Token expired, Pls Login Again");
+     }
+
+     UserDto existingUserDto = new UserDto().getUserDtoFromEntity(existingUser.get());
+     return jwtUtilService.generateToken(existingUserDto);
+    }
+
+
+
+
+
+
+
     public User getUserFromUserDto(UserDto userDto){
-        return User.builder().emailId(userDto.getUserEmailId())
+        return User.builder().emailId(userDto.getEmailId())
                 .username(userDto.getUsername())
-                .password(userDto.getUserEmailPassword())
+                .password(userDto.getPassword())
                 .build();
     }
 }
