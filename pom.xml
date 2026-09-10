@@ -19,6 +19,6 @@
 
     <modules>
         <module>authservice</module>
-
+        <module>userservice</module>
     </modules>
 </project>

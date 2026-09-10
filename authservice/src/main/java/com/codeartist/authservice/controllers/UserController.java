@@ -21,10 +21,10 @@ public class UserController {
     @Autowired
     AuthService authService;
     @PostMapping("/v1/signup")
-    public ResponseEntity<SignUpResponseDto> signUp(@Valid @RequestBody UserDto userDto) {
+    public ResponseEntity signUp(@Valid @RequestBody UserDto userDto) {
 //        try{
-            SignUpResponseDto token = authService.signUpRequest(userDto);
-            return new ResponseEntity<>(token,HttpStatus.OK);
+             authService.signUpRequest(userDto);
+            return new ResponseEntity<>(HttpStatus.OK);
 //        }
 //      catch (Exception e){
 //          SignUpResponseDto loginResponseDto = SignUpResponseDto.builder().accessToken("Got problem while authentication"+e.getMessage()).build();
