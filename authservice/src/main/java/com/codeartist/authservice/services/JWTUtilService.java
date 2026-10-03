@@ -3,6 +3,8 @@ package com.codeartist.authservice.services;
 import com.codeartist.authservice.dtos.UserDto;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -14,8 +16,11 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class JWTUtilService {
+    @Value( "${secret.key}")
     private final String  SECRET_KEY = "z0rV7IK0R7MuWo70kRxJpxmd9zI2AnproZ17KbOYg3e";
+
 
     SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
     public String generateToken(UserDto userDto){
@@ -31,11 +36,12 @@ public class JWTUtilService {
 
         Map<String, String> map = new HashMap<>();
         map.put("userName",claim.getUsername());
-
+        map.put("user",claim.getUserId().toString());
      return   Jwts.builder().claims(map).signWith(key)
                  .issuedAt(Date.from(Instant.now()))
                  .expiration(Date.from(Instant.now().plus(expirationTime, ChronoUnit.MINUTES)))
                  .subject(  claim.getEmailId() )
+
                  .compact();
     }
 
@@ -65,5 +71,9 @@ public class JWTUtilService {
     public  String getUsername (String token){
         Claims claims = getClaims(token);
         return (String)claims.get("userName");
+    }
+
+    public Integer getUserIdFrmToken(String token){
+        return Integer.getInteger((String) getClaims(token).get("user"));
     }
 }

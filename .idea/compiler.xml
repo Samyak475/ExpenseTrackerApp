@@ -8,6 +8,24 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
       </profile>
+      <profile name="Annotation profile for gatewayservice.main" enabled="true">
+        <sourceOutputDir name="../generated-sources/annotations" />
+        <sourceTestOutputDir name="../generated-test-sources/test-annotations" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/4.1.1/spring-boot-configuration-processor-4.1.1.jar" />
+        </processorPath>
+        <module name="gatewayservice.main" />
+      </profile>
+      <profile name="Annotation profile for gatewayservice.test" enabled="true">
+        <sourceOutputDir name="../generated-sources/annotations" />
+        <sourceTestOutputDir name="../generated-test-sources/test-annotations" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/4.1.1/spring-boot-configuration-processor-4.1.1.jar" />
+        </processorPath>
+        <module name="gatewayservice.test" />
+      </profile>
       <profile name="Annotation profile for backend-parent" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -23,6 +41,9 @@
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="authservice" options="-parameters" />
+      <module name="gatewayservice" options="-parameters" />
+      <module name="gatewayservice.main" options="-parameters" />
+      <module name="gatewayservice.test" options="-parameters" />
       <module name="userservice" options="-parameters" />
     </option>
   </component>

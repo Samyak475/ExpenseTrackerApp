@@ -38,7 +38,7 @@ public class UserService implements UserDetailsService {
     public UserDto getUserByUsername(String username){
         Optional<User>optionalUser= userRepo.getUserByUsername(username);
         UserDto userDto = new UserDto();
-        if(optionalUser.isEmpty()) throw new UsernameNotFoundException("User not present.Pls signUp");;
+        if(optionalUser.isEmpty()) throw new UsernameNotFoundException("User not present.Pls signUp");
         return userDto.getUserDtoFromEntity(optionalUser.get());
     }
 

@@ -20,5 +20,6 @@
     <modules>
         <module>authservice</module>
         <module>userservice</module>
+        <module>gatewayservice</module>
     </modules>
 </project>

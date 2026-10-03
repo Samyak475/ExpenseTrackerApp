@@ -1,0 +1,29 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gatewayservice
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: auth-service
+              uri: http://localhost:8081
+              predicates:
+                - name: Path
+                  args:
+                    patterns:
+                      - /v1/signup
+                      - /v1/login
+                      - /v1/refreshToken
+
+            - id: user-service
+              uri: http://localhost:8082
+              predicates:
+                - Path=/v1/users/**
+
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE

@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface UserInfoRepository extends CrudRepository<UserInfo,String> {
-    public Optional<UserInfo> getUserInfoByUserId(String userId);
+public interface UserInfoRepository extends CrudRepository<UserInfo,Integer> {
+    public Optional<UserInfo> getUserInfoByUserId(Integer userId);
 }

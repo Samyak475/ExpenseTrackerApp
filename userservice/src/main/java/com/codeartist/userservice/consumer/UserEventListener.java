@@ -12,7 +12,7 @@ public class UserEventListener {
     UserInfoService userInfoService;
 
     @KafkaListener(topics = "user-creation-topic",groupId = "user-service-group")
-    public void handleUserCreationn(ConsumerUserDto consumerUserDto){
+    public void handleUserCreation(ConsumerUserDto consumerUserDto){
         userInfoService.saveUserDetailsFromAuth(consumerUserDto);
     }
 }

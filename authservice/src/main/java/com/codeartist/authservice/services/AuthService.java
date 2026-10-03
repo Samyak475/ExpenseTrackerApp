@@ -84,7 +84,7 @@ public class AuthService {
         User existingUser = (User) authentication.getPrincipal();
         UserDto userDto =  new UserDto().getUserDtoFromEntity(existingUser);
         userDto.setPassword(requestDto.getPassword());
-        String accessToken = jwtUtilService.generateToken(userDto);
+
         String refreshToken = jwtUtilService.generateRefreshToken();
         LocalDateTime expirationTime = LocalDateTime.now().plusMonths(1);
         Tokens refreshTokenInDb = Tokens.builder().tokenId(refreshToken).expirationTime(expirationTime).build();
@@ -100,7 +100,8 @@ public class AuthService {
         catch (Exception dt){
             throw new RuntimeException("Unable to access userData"+dt.getLocalizedMessage());
         }
-
+        userDto.setUserId(existingUser.getUserId());
+        String accessToken = jwtUtilService.generateToken(userDto);
         return LoginResponseDto.builder()
                 .accessToken(accessToken)
                 .email(userDto.getEmailId())
